@@ -29,26 +29,26 @@ class SongRepo(var context: Context) {
             val albumColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
             val songSize = cursor.getColumnIndex(MediaStore.Audio.Media.SIZE)
             val artistName = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+            val duration = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
+
             while (cursor.moveToNext()) {
                 val currentId = cursor.getLong(songId)
                 val song_tittle = cursor.getString(songTittle)
                 val song_data = cursor.getString(songData)
                 val song_date = cursor.getLong(date)
                 val albumId = cursor.getLong(albumColumn)
-                val song_size=cursor.getString(songSize)
+                val song_size=cursor.getInt(songSize)
+                val duration=cursor.getInt(duration)
                 val artist_name=cursor.getString(artistName)
-
 
                 val Image_Uri = Uri.parse("content://media/external/audio/albumart")
                 val album_uri = ContentUris.withAppendedId(Image_Uri, albumId)
 
                 if (!songTittle.equals("<unknown>")) {
-                    list.add(SongModel(currentId, song_tittle, song_data, album_uri, song_date,song_size,artist_name))
+                    list.add(SongModel(currentId, song_tittle, song_data, album_uri, song_date,song_size,artist_name,duration))
                 }
             }
-
         }
-
         _songList.emit(list)
     }
 }

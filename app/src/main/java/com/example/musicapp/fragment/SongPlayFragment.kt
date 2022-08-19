@@ -1,5 +1,6 @@
 package com.example.musicapp.fragment
 
+import android.annotation.SuppressLint
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
@@ -8,7 +9,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,8 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,7 +31,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -149,14 +147,15 @@ class SongPlayFragment : Fragment() {
         }
     }
 
+    @SuppressLint("UnrememberedMutableState")
     @Composable
-    fun PlayerButtons(songModel: SongModel,
+    fun PlayerButtons(
+        songModel: SongModel,
         modifier: Modifier = Modifier,
         playerButtonSize: Dp = 72.dp,
         sideButtonSize: Dp = 42.dp
-    )
-    {
-        var mMediaPlayer: MediaPlayer? = null
+    ) {
+
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -182,6 +181,10 @@ class SongPlayFragment : Fragment() {
 //                colorFilter = ColorFilter.tint(Color.White),
 //                modifier = buttonModifier
 //            )
+            val mediaPlayer = MediaPlayer()
+            mediaPlayer.setDataSource(requireContext(), Uri.parse(songModel.song_data))
+            var bln = false
+            var length = 0
 
             Image(
                 imageVector = Icons.Filled.PlayCircleFilled,
@@ -193,14 +196,17 @@ class SongPlayFragment : Fragment() {
                     .semantics { role = Role.Button }
                     .clickable {
 
-                        val songPlay = Uri.parse(songModel.song_data)
-
-                        if (mMediaPlayer == null) {
-                            mMediaPlayer = MediaPlayer.create(requireContext(), songPlay)
-                            mMediaPlayer!!.isLooping = true
-                            mMediaPlayer!!.start()
-                        } else mMediaPlayer!!.start()
-
+                        if (!mediaPlayer.isPlaying && !bln) {
+                            mediaPlayer.prepare()
+                            mediaPlayer.start()
+                            bln = true
+                        } else if (mediaPlayer.isPlaying) {
+                            mediaPlayer.pause()
+                            length = mediaPlayer.currentPosition
+                        } else if (bln) {
+                            mediaPlayer.seekTo(length)
+                            mediaPlayer.start()
+                        }
                     }
             )
 
@@ -228,7 +234,7 @@ class SongPlayFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     @Composable
-    fun PlayerScreen(songModel:SongModel) {
+    fun PlayerScreen(songModel: SongModel) {
 
         Column(
             modifier = Modifier
@@ -270,7 +276,7 @@ class SongPlayFragment : Fragment() {
                 ) {
                     PlayerSlider(Duration.ofHours(2))
                     Spacer(modifier = Modifier.height(40.dp))
-                    PlayerButtons(songModel,modifier = Modifier.padding(vertical = 8.dp))
+                    PlayerButtons(songModel, modifier = Modifier.padding(vertical = 8.dp))
                 }
                 Spacer(modifier = Modifier.weight(1f))
             }
@@ -282,7 +288,7 @@ class SongPlayFragment : Fragment() {
     @Composable
     fun DefaultPreview() {
         MusicAppTheme {
-         //  PlayerScreen()
+            //  PlayerScreen()
         }
     }
 }
